@@ -1,7 +1,11 @@
 import re
 
+import webapp2
+from webapp2_extras import json
+
 
 class Form(object):
+  field_values = {} 
 
   def build(self):
     fields = ''.join([f.build(self) for f in self.fields])
@@ -12,7 +16,21 @@ class Form(object):
     """ % fields
 
   def validate(self):
-    pass
+    request = webapp2.get_request()
+    data = json.decode(request.body)
+
+    for f in self.fields:
+      vals = self.validations[f.id]
+
+      try:
+        value = data[f.id]
+      except KeyError:
+        value = ''
+
+      field_values[f.id] = value
+      for val in vals:
+        if not val.validate(self):    
+          request.abort(403)
 
   @property
   def fields(self):
@@ -22,8 +40,8 @@ class Form(object):
   def validations(self):
     raise NotImplemented()
 
-  def field(self, name):
-    return ""
+  def field(self, id):
+    return field_values[id]
 
 
 class Validation(object):
@@ -71,7 +89,7 @@ class Email(Validation):
     super(Email, self).__init__("email", message, {})
 
   def validate(self, form):
-    return not re.match("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$", 
+    return not re.match(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$', 
         form.field(self.input)) is None
 
 
@@ -159,22 +177,3 @@ class InputField(Field):
     input = '<input%s>' % ''.join(input)
 
     return tmpl % input
-
-"""
-class EditAccountForm(Form):
-  @property
-  def validations(self):
-    return {
-      "name": [Required("oops"), MinLength(4, "ops")],
-    }
-
-  @property 
-  def fields(self):
-    return [
-      InputField(id="name", placeholder="test@example.com", type="email",
-          cls=["input-xlarge"], name="Nombre"),
-    ]
-
-
-print EditAccountForm().build()
-"""
