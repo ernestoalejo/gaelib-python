@@ -177,3 +177,61 @@ class InputField(Field):
     input = '<input%s>' % ''.join(input)
 
     return tmpl % input
+
+
+class TextAreaField(Field):
+  def __init__(self, id, cls, name, rows, placeholder=''):
+    super(InputField, self).__init__(id, name)
+
+    self.placeholder = placeholder
+    self.cls = cls
+    self.rows = rows
+
+  def build(self, form):
+    attrs = {
+      "id": self.id,
+      "name": self.name,
+      "placeholder": self.placeholder,
+      "class": ' '.join(self.cls),
+      "ng-model": 'data.%s' % self.id,
+      "rows": self.rows,
+    }
+    
+    (at, tmpl) = super(TextAreaField, self).build(form)
+    attrs.update(at)
+    
+    input = [' %s="%s"' % (k, v) for k,v in attrs.iteritems()]
+    input = '<textarea%s</textarea>' % ''.join(input)
+
+    return tmpl % input
+
+
+class SubmitField(Field):
+  def __init__(self, label, cancelUrl='', cancelLabel=''):
+    super(SubmitField, self).__init__('submit', 'submit')
+
+    self.label = label
+    self.cancelUrl = cancelUrl
+    self.cancelLabel = cancelLabel
+
+  def build(self, form):
+    attrs = {
+      "label": self.label,
+      "cancelUrl": self.cancelUrl,
+      "cancelLabel": self.cancelLabel,
+    }
+
+    cancel = ''
+    if self.cancelUrl != '' and self.cancelLabel != '':
+      cancel = ('&nbsp;&nbsp;&nbsp;<a href="%s" class="btn">%s</a>' %
+          (self.cancelUrl, self.cancelLabel))
+    
+    submit = '''
+      <div class="form-actions">
+        <button ng-click="trySubmit(); val = true;" class="btn btn-primary"
+          ng-disabled="val && !f.$valid">%s</button>
+        %s
+      </div>
+    ''' % (self.label, cancel)
+
+    return submit
