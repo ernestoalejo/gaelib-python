@@ -1,3 +1,4 @@
+
 import re
 
 import webapp2
@@ -56,9 +57,9 @@ class Validation(object):
     raise NotImplemented()
 
 
-class MinLength(Validation):
+class LargerThan(Validation):
   def __init__(self, min, message):
-    super(MinLength, self).__init__("minlength", message, 
+    super(LargerThan, self).__init__("minlength", message, 
         {"ng-minlength" : min})
     self.min = min
 
@@ -66,9 +67,9 @@ class MinLength(Validation):
     return len(form.field(self.input)) >= min
 
 
-class MaxLength(Validation):
+class ShorterThan(Validation):
   def __init__(self, max, message):
-    super(MaxLength, self).__init__("maxlength", message,
+    super(ShorterThan, self).__init__("maxlength", message,
         {"ng-maxlength" : max})
     self.max = max
 
@@ -207,31 +208,21 @@ class TextAreaField(Field):
 
 
 class SubmitField(Field):
-  def __init__(self, label, cancelUrl='', cancelLabel=''):
+  def __init__(self, label):
     super(SubmitField, self).__init__('submit', 'submit')
 
     self.label = label
-    self.cancelUrl = cancelUrl
-    self.cancelLabel = cancelLabel
 
   def build(self, form):
     attrs = {
       "label": self.label,
-      "cancelUrl": self.cancelUrl,
-      "cancelLabel": self.cancelLabel,
     }
-
-    cancel = ''
-    if self.cancelUrl != '' and self.cancelLabel != '':
-      cancel = ('&nbsp;&nbsp;&nbsp;<a href="%s" class="btn">%s</a>' %
-          (self.cancelUrl, self.cancelLabel))
     
     submit = '''
       <div class="form-actions">
         <button ng-click="trySubmit(); val = true;" class="btn btn-primary"
           ng-disabled="val && !f.$valid">%s</button>
-        %s
       </div>
-    ''' % (self.label, cancel)
+    ''' % self.label
 
     return submit
