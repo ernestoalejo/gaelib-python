@@ -21,17 +21,17 @@ class Form(object):
     data = json.decode(request.body)
 
     for f in self.fields:
-      vals = self.validations[f.id]
-
       try:
-        value = data[f.id]
+        value = data[f.id].strip()
       except KeyError:
         value = ''
 
       field_values[f.id] = value
-      for val in vals:
+      for val in self.validations[f.id]:
         if not val.validate(self):    
           request.abort(403)
+
+    return field_values
 
   @property
   def fields(self):
