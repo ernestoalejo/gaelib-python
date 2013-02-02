@@ -165,7 +165,7 @@ class InputField(Field):
     attrs = {
       "type": self.type,
       "id": self.id,
-      "name": self.name,
+      "name": self.id,
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
       "ng-model": 'data.%s' % self.id, 
@@ -191,7 +191,7 @@ class TextAreaField(Field):
   def build(self, form):
     attrs = {
       "id": self.id,
-      "name": self.name,
+      "name": self.id,
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
       "ng-model": 'data.%s' % self.id,
@@ -202,7 +202,7 @@ class TextAreaField(Field):
     attrs.update(at)
     
     input = [' %s="%s"' % (k, v) for k,v in attrs.iteritems()]
-    input = '<textarea%s</textarea>' % ''.join(input)
+    input = '<textarea%s></textarea>' % ''.join(input)
 
     return tmpl % input
 
