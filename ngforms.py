@@ -20,6 +20,9 @@ class Form(object):
     request = webapp2.get_request()
     data = json.decode(request.body)
 
+    if not isinstance(data, dict):
+      request.abort(403)
+
     for f in self.fields:
       try:
         value = data[f.id].strip()
@@ -42,7 +45,11 @@ class Form(object):
     raise NotImplemented()
 
   def field(self, id):
-    return field_values[id]
+    if isinstance(field_values[id], basestring):
+      return field_values[id]
+
+    request = webapp2.get_request()
+    request.abort(403)
 
 
 class Validation(object):

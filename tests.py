@@ -8,17 +8,41 @@ class Base(unittest.TestCase):
   def setUp(self):
     self.testbed = testbed.Testbed()
     self.testbed.activate()
-
-    if 'init' in self.__class__.__dict__:
-      self.init()
-
-  def tearDown(self):
-    self.testbed.deactivate()
-
+ 
+    self.init()
+    self.addCleanup(self.finish)
+    self.addCleanup(self.testbed.deactivate)
+ 
+  def init(self):
+    pass
+ 
+  def finish(self):
+    pass
+ 
   def login(self, admin=False):
-    self.testbed.setup_env(
-      USER_EMAIL='test@example.com',
-      USER_ID='123',
-      USER_IS_ADMIN='1' if admin else '0',
-      overwrite=True
-    )
+    pass
+
+  def init_datastore(self, full=True):
+    if full:
+      policy = datastore_stub_util.PseudoRandomHRConsistencyPolicy(probability=1)
+    else:
+      policy = datastore_stub_util.PseudoRandomHRConsistencyPolicy(probability=0)
+ 
+    self.testbed.init_datastore_v3_stub(consistency_policy=policy)
+    self.testbed.init_memcache_stub()
+ 
+  def init_taskqueue(self):
+    """Helper to init the taskqueue stub.
+ 
+    We abstract the fact that we should provide the root path to the application
+    in order to work correctly when reading cron.yaml. It provides an easy way
+    to access the stub from the tests too.
+    """
+    self.testbed.init_taskqueue_stub(root_path='.')
+    self.taskqueue = self.testbed.get_stub('taskqueue')
+
+  def json_request(self, url, data):
+    r = webapp2.Request.blank(url)
+    r.method = 'POST'
+    r.body = json.encode(data)
+    return r
