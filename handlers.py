@@ -1,12 +1,21 @@
 
 import webapp2
-from webapp2_extras import json
+from webapp2_extras import json, sessions
 
 import os
 import datetime
 
+from endarch.models.user import User
+
 
 class Base(webapp2.RequestHandler):
+  def dispatch(self):
+      session_store = User.get_session_store()
+      try:
+          super(Base, self).dispatch()
+      finally:
+          session_store.save_sessions(self.response)
+
   @webapp2.cached_property
   def jinja2(self):
     return jinja2.get_jinja2(app=self.app)

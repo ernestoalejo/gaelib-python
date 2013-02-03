@@ -21,20 +21,25 @@ class Form(object):
     data = json.decode(request.body)
 
     if not isinstance(data, dict):
-      request.abort(403)
+      webapp2.abort(403)
 
     for f in self.fields:
+      if not f.id in self.validations:
+        continue
+
       try:
         value = data[f.id].strip()
       except KeyError:
         value = ''
 
-      field_values[f.id] = value
+      self.field_values[f.id] = value
       for val in self.validations[f.id]:
-        if not val.validate(self):    
-          request.abort(403)
+        val.input = f.id
 
-    return field_values
+        if not val.validate(self):
+          webapp2.abort(403)
+
+    return self.field_values
 
   @property
   def fields(self):
@@ -45,14 +50,20 @@ class Form(object):
     raise NotImplemented()
 
   def field(self, id):
-    if isinstance(field_values[id], basestring):
-      return field_values[id]
+    if not id in self.field_values:
+      return ''
+
+    if isinstance(self.field_values[id], basestring):
+      return self.field_values[id]
 
     request = webapp2.get_request()
-    request.abort(403)
+    webapp2.abort(403)
 
 
 class Validation(object):
+  """Base class for all form validations."""
+
+  """ID of the input field associated to this validation."""
   input = ""
 
   def __init__(self, name, message, attrs):
@@ -71,7 +82,7 @@ class LargerThan(Validation):
     self.min = min
 
   def validate(self, form):
-    return len(form.field(self.input)) >= min
+    return len(form.field(self.input)) >= self.min
 
 
 class ShorterThan(Validation):
@@ -81,7 +92,7 @@ class ShorterThan(Validation):
     self.max = max
 
   def validate(self, form):
-    return len(form.field(self.input)) <= max
+    return len(form.field(self.input)) <= self.max
 
 
 class Required(Validation):
@@ -106,8 +117,8 @@ class Match(Validation):
     super(Match, self).__init__("match", message, {'match': field})
     self.field = field
 
-    def validate(self, form):
-      return form.field(field) == form.field(self.input)
+  def validate(self, form):
+    return form.field(self.field) == form.field(self.input)
 
 
 class Pattern(Validation):
