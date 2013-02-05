@@ -21,7 +21,7 @@ class Form(object):
     data = json.decode(request.body)
 
     if not isinstance(data, dict):
-      webapp2.abort(403)
+      webapp2.abort(403, detail='not a dict')
 
     for f in self.fields:
       if not f.id in self.validations:
@@ -37,7 +37,9 @@ class Form(object):
         val.input = f.id
 
         if not val.validate(self):
-          webapp2.abort(403)
+          webapp2.abort(403, 
+            detail='validation error, id: %s name: %s value: %s' 
+            % (f.id, f.name, value))
 
     return self.field_values
 
@@ -57,7 +59,7 @@ class Form(object):
       return self.field_values[id]
 
     request = webapp2.get_request()
-    webapp2.abort(403)
+    webapp2.abort(403, detail='not a string, id: %s' % id)
 
 
 class Validation(object):

@@ -11,6 +11,7 @@ from endarch.models.user import User
 class Base(webapp2.RequestHandler):
   def dispatch(self):
       session_store = User.get_session_store()
+      self.session = User.get_session()
       try:
           super(Base, self).dispatch()
       finally:
