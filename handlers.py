@@ -1,6 +1,6 @@
 
 import webapp2
-from webapp2_extras import json, sessions
+from webapp2_extras import json, sessions, jinja2
 
 import os
 import datetime
