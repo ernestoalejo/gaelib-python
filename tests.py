@@ -6,6 +6,7 @@ import unittest
 
 from google.appengine.ext import testbed
 from google.appengine.datastore import datastore_stub_util
+from google.appengine.api import mail
 
 
 class Base(unittest.TestCase):
@@ -16,7 +17,7 @@ class Base(unittest.TestCase):
     self.init()
     self.addCleanup(self.finish)
     self.addCleanup(self.testbed.deactivate)
- 
+
   def init(self):
     pass
  
@@ -44,6 +45,10 @@ class Base(unittest.TestCase):
     """
     self.testbed.init_taskqueue_stub(root_path='.')
     self.taskqueue = self.testbed.get_stub('taskqueue')
+
+  def init_mail(self):
+    self.testbed.init_mail_stub()
+    self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
 
   def json_request(self, url, data):
     r = webapp2.Request.blank(url)
