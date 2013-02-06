@@ -19,7 +19,9 @@ class Base(webapp2.RequestHandler):
 
   @webapp2.cached_property
   def jinja2(self):
-    return jinja2.get_jinja2(app=self.app)
+    return jinja2.Jinja2(app=self.app, config={
+      'template_path': '.',
+    })
 
   def render(self, template, **kwargs):
     self.response.headers.add('X-UA-Compatible', 'chrome=1')
