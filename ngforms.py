@@ -8,17 +8,18 @@ from webapp2_extras import json
 class Form(object):
   field_values = {} 
 
-  def build(self, form_name='f'):
+  def build(self, form_name='f', submit_func='submit', try_submit_func=''):
     self.form_name = form_name
+    self.try_submit_func = try_submit_func
 
     fields = ''.join([f.build(self) for f in self.fields])
 
     return """
       <form class="form-horizontal" name="%s" novalidate
-          ng-init="%s.val = false;" ng-submit="%s.$valid && submit()">
+          ng-init="%s.val = false;" ng-submit="%s.$valid && %s()">
         <fieldset>%s</fieldset>
       </form>
-    """ % (form_name, form_name, form_name, fields)
+    """ % (form_name, form_name, form_name, submit_func, fields)
 
   def validate(self):
     request = webapp2.get_request()
@@ -261,10 +262,15 @@ class SubmitField(Field):
     attrs = {
       "label": self.label,
     }
+
+    if len(form.try_submit_func) > 0:
+      t = '%s(); ' % form.try_submit_func
+    else:
+      t = ''
     
     submit = '''
       <div class="form-actions">
-        <button ng-click="trySubmit(); %(form_name)s.val = true;"
+        <button ng-click="%(try)s%(form_name)s.val = true;"
             class="btn btn-primary"
             ng-disabled="%(form_name)s.val && !%(form_name)s.$valid">
           %(label)s
@@ -273,6 +279,7 @@ class SubmitField(Field):
     ''' % {
       'form_name': form.form_name,
       'label': self.label,
+      'try': t,
     }
 
     return submit
