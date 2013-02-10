@@ -8,13 +8,15 @@ from webapp2_extras import json
 class Form(object):
   field_values = {} 
 
-  def build(self):
+  def build(self, form_name='f'):
+    self.form_name = form_name
+
     fields = ''.join([f.build(self) for f in self.fields])
 
     return """
-      <form class="form-horizontal" name="f" novalidate ng-init="val = false;"
-        ng-submit="f.$valid && submit()"><fieldset>%s</fieldset></form>
-    """ % fields
+      <form class="form-horizontal" name="%s" novalidate ng-init="val = false;"
+        ng-submit="%s.$valid && submit()"><fieldset>%s</fieldset></form>
+    """ % (form_name, form_name, fields)
 
   def validate(self):
     request = webapp2.get_request()
@@ -139,7 +141,11 @@ class Field(object):
 
   def build(self, form):
     vals = form.validations[self.id]
-    errs = " || ".join(['f.%s.$error.%s' % (self.id, val.name) for val in vals])
+
+    errs = []
+    for val in vals:
+      errs.append('%s.%s.$error.%s' % (form.form_name, self.id, val.name))
+    errs = " || ".join(errs)
 
     attrs = {}
     for val in vals:
@@ -147,30 +153,30 @@ class Field(object):
 
     messages = []
     for v in vals:
-      messages.append('<span ng-show="f.%s.$error.%s">%s</span>' % 
-          (self.id, v.name, v.message))
+      messages.append('<span ng-show="%s.%s.$error.%s">%s</span>' % 
+          (form.form_name, self.id, v.name, v.message))
     messages = ''.join(messages)
 
     if len(self.name) == 0:
       return attrs, """
         <div class="control-group" ng-class="val && (%s) && 'error'">
           %%s
-          <p class="help-block error" ng-show="val && f.%s.$invalid">
+          <p class="help-block error" ng-show="val && %s.%s.$invalid">
             %s
           </p>
         </div>
-      """ % (errs, self.id, messages)
+      """ % (errs, self.id, form.form_name, messages)
     
     return attrs, """
       <div class="control-group" ng-class="val && (%s) && 'error'">
         <label class="control-label" for="%s">%s</label>
         <div class="controls">%%s
-          <p class="help-block error" ng-show="val && f.%s.$invalid">
+          <p class="help-block error" ng-show="val && %s.%s.$invalid">
             %s
           </p>
         </div>
       </div>
-    """ % (errs, self.id, self.name, self.id, messages)
+    """ % (errs, self.id, self.name, form.form_name, self.id, messages)
 
 
 class InputField(Field):
@@ -241,8 +247,8 @@ class SubmitField(Field):
     submit = '''
       <div class="form-actions">
         <button ng-click="trySubmit(); val = true;" class="btn btn-primary"
-          ng-disabled="val && !f.$valid">%s</button>
+          ng-disabled="val && !%s.$valid">%s</button>
       </div>
-    ''' % self.label
+    ''' % (form.form_name, self.label)
 
     return submit
