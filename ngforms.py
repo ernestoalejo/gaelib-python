@@ -8,10 +8,12 @@ from webapp2_extras import json
 class Form(object):
   field_values = {}
 
-  def __init__(self, form_name='f', submit_func='submit', try_submit_func=''):
+  def __init__(self, form_name='f', submit_func='submit', try_submit_func='',
+      data_obj='data'):
     self.form_name = form_name
     self.submit_func = submit_func
     self.try_submit_func = try_submit_func
+    self.data_obj = data_obj
 
   def build(self):
     fields = ''.join([f.build(self) for f in self.fields])
@@ -220,7 +222,7 @@ class InputField(Field):
       "name": self.id,
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
-      "ng-model": 'data.%s' % self.id, 
+      "ng-model": '%s.%s' % (form.data_obj, self.id),
     }
     
     (at, tmpl) = super(InputField, self).build(form)
@@ -246,7 +248,7 @@ class TextAreaField(Field):
       "name": self.id,
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
-      "ng-model": 'data.%s' % self.id,
+      "ng-model": '%s.%s' % (form.data_obj, self.id),
       "rows": self.rows,
     }
     
