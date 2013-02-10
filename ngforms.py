@@ -153,10 +153,11 @@ class Field(object):
 
   def build(self, form):
     vals = form.validations[self.id]
+    id = '%s%s' % (form.form_name, self.id)
 
     errs = []
     for val in vals:
-      errs.append('%s.%s.$error.%s' % (form.form_name, self.id, val.name))
+      errs.append('%s.%s.$error.%s' % (form.form_name, id, val.name))
     errs = " || ".join(errs)
 
     attrs = {}
@@ -166,7 +167,7 @@ class Field(object):
     messages = []
     for v in vals:
       messages.append('<span ng-show="%s.%s.$error.%s">%s</span>' % 
-          (form.form_name, self.id, v.name, v.message))
+          (form.form_name, id, v.name, v.message))
     messages = ''.join(messages)
 
     if len(self.name) == 0:
@@ -181,7 +182,7 @@ class Field(object):
         </div>
       """ % {
         'errs': errs,
-        'id': self.id,
+        'id': id,
         'form_name': form.form_name,
         'messages': messages,
       }
@@ -200,7 +201,7 @@ class Field(object):
       </div>
     """ % {
       'errs': errs,
-      'id': self.id,
+      'id': id,
       'form_name': form.form_name,
       'messages': messages,
       'name': self.name,
@@ -218,8 +219,8 @@ class InputField(Field):
   def build(self, form):
     attrs = {
       "type": self.type,
-      "id": self.id,
-      "name": self.id,
+      "id": '%s%s' % (form.form_name, self.id),
+      "name": '%s%s' % (form.form_name, self.id),
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
       "ng-model": '%s.%s' % (form.data_obj, self.id),
@@ -244,8 +245,8 @@ class TextAreaField(Field):
 
   def build(self, form):
     attrs = {
-      "id": self.id,
-      "name": self.id,
+      "id": '%s%s' % (form.form_name, self.id),
+      "name": '%s%s' % (form.form_name, self.id),
       "placeholder": self.placeholder,
       "class": ' '.join(self.cls),
       "ng-model": '%s.%s' % (form.data_obj, self.id),
