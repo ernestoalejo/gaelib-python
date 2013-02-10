@@ -8,9 +8,10 @@ from webapp2_extras import json
 class Form(object):
   field_values = {}
 
-  form_name = 'f'
-  submit_func = 'submit'
-  try_submit_func = ''
+  def __init__(self, form_name='f', submit_func='submit', try_submit_func=''):
+    self.form_name = form_name
+    self.submit_func = submit_func
+    self.try_submit_func = try_submit_func
 
   def build(self):
     fields = ''.join([f.build(self) for f in self.fields])
