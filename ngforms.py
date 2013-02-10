@@ -6,20 +6,26 @@ from webapp2_extras import json
 
 
 class Form(object):
-  field_values = {} 
+  field_values = {}
 
-  def build(self, form_name='f', submit_func='submit', try_submit_func=''):
-    self.form_name = form_name
-    self.try_submit_func = try_submit_func
+  form_name = 'f'
+  submit_func = 'submit'
+  try_submit_func = ''
 
+  def build(self):
     fields = ''.join([f.build(self) for f in self.fields])
 
     return """
-      <form class="form-horizontal" name="%s" novalidate
-          ng-init="%s.val = false;" ng-submit="%s.$valid && %s()">
-        <fieldset>%s</fieldset>
+      <form class="form-horizontal" name="%(form_name)s" novalidate
+          ng-init="%(form_name)s.val = false;"
+          ng-submit="%(form_name)s.$valid && %(submit_func)s()">
+        <fieldset>%(fields)s</fieldset>
       </form>
-    """ % (form_name, form_name, form_name, submit_func, fields)
+    """ % {
+      'form_name': self.form_name,
+      'submit_func': self.submit_func,
+      'fields': fields,
+    }
 
   def validate(self):
     request = webapp2.get_request()
